@@ -1,8 +1,10 @@
 from msc_multiplayer_host.settings import SETTINGS
 import socket as sk
+import threading
+import time
 
 
-class Server:
+class ThreadedServer:
     def __init__(self):
         self.socket = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
         self.socket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
@@ -17,14 +19,18 @@ class Server:
         while True:
             client, _ = self.socket.accept()
             client.settimeout(SETTINGS.timeout)
-            self.respond(client)
+            threading.Thread(target=self._talk_with_client, args=(client,)).start()
 
     @staticmethod
-    def respond(client: sk.socket) -> None:
+    def _talk_with_client(client: sk.socket) -> None:
         message = client.recv(SETTINGS.message_size)
-        client.sendall(message[::-1])
+
+        for _ in range(10):
+            client.sendall(message)
+            time.sleep(3)
+
         client.close()
 
 
 if __name__ == '__main__':
-    Server().start()
+    ThreadedServer().start()

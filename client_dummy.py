@@ -12,7 +12,14 @@ def test(host_address: str, message: str) -> None:
     socket.settimeout(SETTINGS.timeout)
 
     socket.sendall(message.encode())
-    print(socket.recv(SETTINGS.message_size).decode())
+
+    while True:
+        response = socket.recv(SETTINGS.message_size).decode()
+
+        if not response:
+            break
+
+        open('test.txt', 'a').write(response)
 
     socket.close()
 
