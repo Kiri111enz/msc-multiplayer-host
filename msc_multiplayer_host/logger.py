@@ -10,10 +10,10 @@ def get_log_file_name() -> str:
     return f'{SETTINGS.logs_folder}log{datetime.now().strftime("%Y_%m_%d-%H_%M_%S")}.txt'
 
 
-def log(file_name: str, text: str):
+def log(file_name: str, text: str) -> None:
     _append_to_file(file_name, f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\t{text}\n')
 
 
-def _append_to_file(file_name: str, text: str):
+def _append_to_file(file_name: str, text: str) -> None:
     with open(file_name, 'a+') as file:
         file.write(text)

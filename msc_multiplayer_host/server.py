@@ -1,4 +1,4 @@
-from msc_multiplayer_host.settings import SETTINGS
+from msc_multiplayer_host.settings import SETTINGS, MessageType, MESSAGE_SIZES
 import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
@@ -25,13 +25,18 @@ class ThreadedServer:
 
     def _talk_with_client(self, client: sk.socket) -> None:
         logger.log(self._log_file_name, f'Connected from {client}')
-        client.settimeout(SETTINGS.timeout)
 
         while True:
-            x, y, z, rot_y = (struct.unpack('f', value) for value in
-                              [client.recv(SETTINGS.message_size) for _ in range(4)])
+            message_type = struct.unpack('h', client.recv(2))[0]
 
-            print(f'{x} {y} {z}  {rot_y}')
+            if message_type == MessageType.INTRODUCTION.value:
+                message = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION])
+                nickname = struct.unpack(f'{len(message)}s', message)
+                print(nickname)
+            elif message_type == MessageType.TRANSFORM_UPDATE.value:
+                # x, y, z, rot_y = struct.unpack('4f', client.recv(MESSAGE_SIZES[MessageType.TRANSFORM_UPDATE]))
+                x, y, z, rot_y = (struct.unpack('f', value) for value in [client.recv(4) for _ in range(4)])
+                print(f'{x} {y} {z}  {rot_y}')
 
         # noinspection PyUnreachableCode
         logger.log(self._log_file_name, f'Closing connection with {client}.')
