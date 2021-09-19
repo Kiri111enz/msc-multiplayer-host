@@ -1,5 +1,5 @@
 from collections import namedtuple
 
-_Settings = namedtuple('Settings', ('port', 'message_size', 'timeout'))
+_Settings = namedtuple('Settings', ('logs_folder', 'port', 'message_size', 'timeout'))
 
-SETTINGS = _Settings(25565, 4, 30)
+SETTINGS = _Settings('Logs/', 25565, 4, 30)
