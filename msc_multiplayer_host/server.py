@@ -1,7 +1,7 @@
 from msc_multiplayer_host.settings import SETTINGS
 import socket as sk
 import threading
-import time
+import struct
 
 
 class ThreadedServer:
@@ -23,12 +23,20 @@ class ThreadedServer:
 
     @staticmethod
     def _talk_with_client(client: sk.socket) -> None:
-        message = client.recv(SETTINGS.message_size)
+        print(f'Connected from {client}.')
+        client.settimeout(SETTINGS.timeout)
 
-        for _ in range(10):
-            client.sendall(message)
-            time.sleep(3)
+        while True:
+            x, y, z, rot_y = [client.recv(SETTINGS.message_size) for _ in range(4)]
 
+            if not x:
+                break
+
+            x, y, z, rot_y = (struct.unpack('f', value) for value in (x, y, z, rot_y))
+
+            print(f'{x} {y} {z}  {rot_y}')
+
+        print(f'Closing connection with {client}.')
         client.close()
 
 
