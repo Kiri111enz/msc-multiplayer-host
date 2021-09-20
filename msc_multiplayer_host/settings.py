@@ -10,5 +10,5 @@ class MessageType(Enum):
 
 
 SETTINGS = _Settings('Logs/', 25565, 60)
-MESSAGE_SIZES = {MessageType.INTRODUCTION: 20,
-                 MessageType.TRANSFORM_UPDATE: 16}
+MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 20,
+                 MessageType.TRANSFORM_UPDATE.value: 16}

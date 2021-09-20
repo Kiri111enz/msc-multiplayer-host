@@ -1,4 +1,4 @@
-from msc_multiplayer_host.settings import SETTINGS, MessageType, MESSAGE_SIZES
+from msc_multiplayer_host.settings import SETTINGS, MESSAGE_SIZES
 import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
@@ -11,36 +11,51 @@ class ThreadedServer:
         self._socket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
         self._socket.bind(('', SETTINGS.port))
 
+        self.pending_indexes = [0]
+        self.to_send_by_index = {}
         self._log_file_name = logger.get_log_file_name()
 
     def start(self) -> None:
         logger.log(self._log_file_name, 'Server started.')
-
         self._socket.listen(5)
 
         while True:
             client, _ = self._socket.accept()
             client.settimeout(SETTINGS.timeout)
-            threading.Thread(target=self._talk_with_client, args=(client,)).start()
+            threading.Thread(target=self._talk_with_client, args=(client, self._get_free_client_index())).start()
 
-    def _talk_with_client(self, client: sk.socket) -> None:
+    def _talk_with_client(self, client: sk.socket, index: int) -> None:
         logger.log(self._log_file_name, f'Connected from {client}')
+        self.to_send_by_index[index] = []
 
         while True:
             message_type = struct.unpack('h', client.recv(2))[0]
+            message = client.recv(MESSAGE_SIZES[message_type])
 
-            if message_type == MessageType.INTRODUCTION.value:
-                message = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION])
-                nickname = struct.unpack(f'{len(message)}s', message)
-                print(nickname)
-            elif message_type == MessageType.TRANSFORM_UPDATE.value:
-                # x, y, z, rot_y = struct.unpack('4f', client.recv(MESSAGE_SIZES[MessageType.TRANSFORM_UPDATE]))
-                x, y, z, rot_y = (struct.unpack('f', value) for value in [client.recv(4) for _ in range(4)])
-                print(f'{x} {y} {z}  {rot_y}')
+            # TODO: add some thread safety
+
+            for client_index in self.to_send_by_index.keys():
+                if client_index != index:
+                    self.to_send_by_index[client_index].append(message)
+
+            for message in self.to_send_by_index[index]:
+                client.send(message)
+
+            self.to_send_by_index.clear()
 
         # noinspection PyUnreachableCode
         logger.log(self._log_file_name, f'Closing connection with {client}.')
         client.close()
+        self.pending_indexes.insert(0, index)
+
+    def _get_free_client_index(self) -> int:
+        new_client_index = self.pending_indexes[0]
+        self.pending_indexes.pop(0)
+
+        if not self.pending_indexes:
+            self.pending_indexes.append(new_client_index + 1)
+
+        return new_client_index
 
 
 if __name__ == '__main__':
