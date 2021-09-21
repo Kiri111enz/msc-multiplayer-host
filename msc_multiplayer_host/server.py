@@ -3,6 +3,7 @@ import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
 import struct
+from queue import Queue
 
 
 class ThreadedServer:
@@ -11,7 +12,8 @@ class ThreadedServer:
         self._socket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
         self._socket.bind(('', SETTINGS.port))
 
-        self.pending_indexes = [0]
+        self.pending_indexes = Queue()
+        self.pending_indexes.put(0)
         self.to_send_by_index = {}
         self._log_file_name = logger.get_log_file_name()
 
@@ -26,34 +28,30 @@ class ThreadedServer:
 
     def _talk_with_client(self, client: sk.socket, index: int) -> None:
         logger.log(self._log_file_name, f'Connected from {client}')
-        self.to_send_by_index[index] = []
+        self.to_send_by_index[index] = Queue()
 
         while True:
             message_type = struct.unpack('h', client.recv(2))[0]
             message = client.recv(MESSAGE_SIZES[message_type])
 
-            # TODO: add some thread safety
-
             for client_index in self.to_send_by_index.keys():
                 if client_index != index:
-                    self.to_send_by_index[client_index].append(message)
+                    self.to_send_by_index[client_index].put(message)
 
-            for message in self.to_send_by_index[index]:
+            while not self.to_send_by_index[index].empty():
+                message = self.to_send_by_index[index].get()
                 client.send(message)
-
-            self.to_send_by_index.clear()
 
         # noinspection PyUnreachableCode
         logger.log(self._log_file_name, f'Closing connection with {client}.')
         client.close()
-        self.pending_indexes.insert(0, index)
+        self.pending_indexes.put(index)
 
     def _get_free_client_index(self) -> int:
-        new_client_index = self.pending_indexes[0]
-        self.pending_indexes.pop(0)
+        new_client_index = self.pending_indexes.get()
 
-        if not self.pending_indexes:
-            self.pending_indexes.append(new_client_index + 1)
+        if self.pending_indexes.empty():
+            self.pending_indexes.put(new_client_index + 1)
 
         return new_client_index
 
