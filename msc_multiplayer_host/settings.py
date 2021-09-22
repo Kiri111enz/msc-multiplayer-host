@@ -1,14 +1,17 @@
 from collections import namedtuple
 from enum import Enum
 
-_Settings = namedtuple('Settings', ('logs_folder', 'port', 'timeout'))
+_Settings = namedtuple('Settings', ('logs_folder', 'port'))
+SETTINGS = _Settings('Logs/', 25565)
 
 
 class MessageType(Enum):
-    INTRODUCTION = 0
-    TRANSFORM_UPDATE = 1
+    CONNECTED = 0
+    DISCONNECTED = 1
+    INTRODUCTION = 2
+    CLIENT_INFO = 3
+    TRANSFORM_UPDATE = 4
 
 
-SETTINGS = _Settings('Logs/', 25565, 60)
-MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 20,
-                 MessageType.TRANSFORM_UPDATE.value: 16}
+MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 21,
+                 MessageType.TRANSFORM_UPDATE.value: 17}
