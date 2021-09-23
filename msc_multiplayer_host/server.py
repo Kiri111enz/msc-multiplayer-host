@@ -25,23 +25,31 @@ class ThreadedServer:
 
         while True:
             client, _ = self._socket.accept()
-            threading.Thread(target=self._talk_with_client, args=(client, self._get_free_client_index())).start()
+            threading.Thread(target=self._handle_client, args=(client,)).start()
 
-    def _talk_with_client(self, client: sk.socket, index: int) -> None:
+    def _handle_client(self, client: sk.socket) -> None:
         logger.log(self._log_file_name, f'Connected from {client}')
+        index = self._get_free_client_index()
 
+        self._register_client(client, index)
+        self._exchange_info_with_client(client, index)
+        self._forget_client(client, index)
+
+        logger.log(self._log_file_name, f'Closed connection with {client}.')
+
+    def _register_client(self, client: sk.socket, index: int) -> None:
         for client_index in self._to_send_by_index:
             self._to_send_by_index[client_index].put(bytes((MessageType.CONNECTED.value, index)))
 
         nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])
         self._nickname_by_index[index] = nickname
-
         self._to_send_by_index[index] = Queue()
 
         for client_index in self._nickname_by_index:
             self._to_send_by_index[index].put(bytes((MessageType.CLIENT_INFO.value, client_index)) +
                                               self._nickname_by_index[client_index])
 
+    def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
             message_type = client.recv(1)
 
@@ -58,7 +66,7 @@ class ThreadedServer:
                 message = self._to_send_by_index[index].get()
                 client.send(message)
 
-        logger.log(self._log_file_name, f'Closing connection with {client}.')
+    def _forget_client(self, client: sk.socket, index: int) -> None:
         client.close()
 
         del self._nickname_by_index[index]
