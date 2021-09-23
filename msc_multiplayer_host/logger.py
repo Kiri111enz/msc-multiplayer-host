@@ -7,7 +7,10 @@ def get_log_file_name() -> str:
     if not os.path.exists(SETTINGS.logs_folder):
         os.makedirs(os.path.dirname(SETTINGS.logs_folder), exist_ok=True)
 
-    return f'{SETTINGS.logs_folder}log{datetime.now().strftime("%Y_%m_%d-%H_%M_%S")}.txt'
+    log_file_name = f'{SETTINGS.logs_folder}log_latest.txt'
+    open(log_file_name, 'w+').close()
+
+    return log_file_name
 
 
 def log(file_name: str, text: str) -> None:

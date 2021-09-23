@@ -13,5 +13,5 @@ class MessageType(Enum):
     TRANSFORM_UPDATE = 4
 
 
-MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 21,
+MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 20,
                  MessageType.TRANSFORM_UPDATE.value: 17}
