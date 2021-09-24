@@ -9,8 +9,7 @@ class MessageType(Enum):
     CONNECTED = 0
     DISCONNECTED = 1
     INTRODUCTION = 2
-    CLIENT_INFO = 3
-    TRANSFORM_UPDATE = 4
+    TRANSFORM_UPDATE = 3
 
 
 MESSAGE_SIZES = {MessageType.INTRODUCTION.value: 20,

@@ -46,8 +46,7 @@ class ThreadedServer:
         self._to_send_by_index[index] = Queue()
 
         for client_index in self._nickname_by_index:
-            self._to_send_by_index[index].put(bytes((MessageType.CLIENT_INFO.value, client_index)) +
-                                              self._nickname_by_index[client_index])
+            client.send(bytes(client_index) + self._nickname_by_index[client_index])
 
     def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
