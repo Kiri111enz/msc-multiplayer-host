@@ -28,29 +28,34 @@ class ThreadedServer:
             threading.Thread(target=self._handle_client, args=(client,)).start()
 
     def _handle_client(self, client: sk.socket) -> None:
-        logger.log(self._log_file_name, f'Connected from {client}')
         index = self._get_free_client_index()
+        logger.log(self._log_file_name, f'Client {index} connected.')
 
         self._register_client(client, index)
         self._exchange_info_with_client(client, index)
         self._forget_client(client, index)
 
-        logger.log(self._log_file_name, f'Closed connection with {client}.')
+        logger.log(self._log_file_name, f'Client {index} disconnected.')
 
     def _register_client(self, client: sk.socket, index: int) -> None:
         for client_index in self._to_send_by_index:
             self._to_send_by_index[client_index].put(bytes((MessageType.CONNECTED.value, index)))
 
         nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])
-        self._nickname_by_index[index] = nickname
-        self._to_send_by_index[index] = Queue()
+        client.send(bytes(index))
 
         for client_index in self._nickname_by_index:
             client.send(bytes(client_index) + self._nickname_by_index[client_index])
 
+        self._nickname_by_index[index] = nickname
+        self._to_send_by_index[index] = Queue()
+
     def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
-            message_type = client.recv(1)
+            try:
+                message_type = client.recv(1)
+            except ConnectionResetError:
+                break
 
             if not message_type:
                 break
