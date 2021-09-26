@@ -3,7 +3,7 @@ import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
 import struct
-from queue import Queue, LifoQueue
+from queue import Queue
 
 
 class ThreadedServer:
@@ -12,8 +12,7 @@ class ThreadedServer:
         self._socket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
         self._socket.bind(('', SETTINGS.port))
 
-        self._pending_indexes = LifoQueue()  # TODO: rewrite
-        self._pending_indexes.put(0)
+        self._pending_indexes = [0]
         self._nickname_by_index = {}
         self._to_send_by_index = {}
 
@@ -53,8 +52,6 @@ class ThreadedServer:
 
     def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
-            client.send(struct.pack('b', 5))  # just to test
-
             try:
                 message_type = client.recv(1)
             except ConnectionResetError:
@@ -64,7 +61,6 @@ class ThreadedServer:
                 break
 
             message = message_type + client.recv(MESSAGE_SIZES[struct.unpack('b', message_type)[0]])
-            print(f'Received from client {index}.')
 
             for client_index in self._to_send_by_index:
                 if client_index != index:
@@ -73,23 +69,23 @@ class ThreadedServer:
             while not self._to_send_by_index[index].empty():
                 message = self._to_send_by_index[index].get()
                 client.send(message)
-                print(f'Sent to client {index}')
 
     def _forget_client(self, client: sk.socket, index: int) -> None:
         client.close()
 
         del self._nickname_by_index[index]
         del self._to_send_by_index[index]
-        self._pending_indexes.put(index)
+        self._pending_indexes.append(index)
 
         for client_index in self._to_send_by_index:
             self._to_send_by_index[client_index].put(struct.pack('2b', MessageType.DISCONNECTED.value, index))
 
     def _get_free_client_index(self) -> int:
-        new_client_index = self._pending_indexes.get()
+        new_client_index = min(self._pending_indexes)
+        self._pending_indexes.remove(new_client_index)
 
-        if self._pending_indexes.empty():
-            self._pending_indexes.put(new_client_index + 1)
+        if not self._pending_indexes:
+            self._pending_indexes.append(new_client_index + 1)
 
         return new_client_index
 
