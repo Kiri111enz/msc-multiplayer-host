@@ -43,6 +43,7 @@ class ThreadedServer:
 
         nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])
         client.send(bytes(index))
+        client.send(bytes(len(self._nickname_by_index)))
 
         for client_index in self._nickname_by_index:
             client.send(bytes(client_index) + self._nickname_by_index[client_index])
