@@ -37,14 +37,12 @@ class ThreadedServer:
         logger.log(self._log_file_name, f'Client {index} disconnected.')
 
     def _register_client(self, client: sk.socket, index: int) -> None:
-        for client_index in self._to_send_by_index:
-            self._to_send_by_index[client_index].put(struct.pack('2b', MessageType.CONNECTED.value, index))
-
         nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])
         client.send(struct.pack('b', index))
         client.send(struct.pack('b', len(self._nickname_by_index)))
 
-        for client_index in self._nickname_by_index:
+        for client_index in self._to_send_by_index:
+            self._to_send_by_index[client_index].put(struct.pack('2b', MessageType.CONNECTED.value, index) + nickname)
             client.send(struct.pack('b', client_index) + self._nickname_by_index[client_index])
 
         self._nickname_by_index[index] = nickname
