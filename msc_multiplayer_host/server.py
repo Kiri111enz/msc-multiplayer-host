@@ -1,5 +1,5 @@
-from msc_multiplayer_host.settings import SETTINGS, MessageType, MESSAGE_SIZES
-from msc_multiplayer_host.socket_utils import get_socket
+from msc_multiplayer_host.settings import SETTINGS, MessageType
+from msc_multiplayer_host.socket_utils import get_socket, receive_message
 import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
@@ -35,7 +35,7 @@ class ThreadedServer:
         logger.log(f'Client {index} disconnected.')
 
     def _register_client(self, client: sk.socket, index: int) -> None:
-        nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])
+        nickname = receive_message(client)
         client.send(struct.pack('b', index))
         client.send(struct.pack('b', len(self._nickname_by_index)))
 
@@ -48,15 +48,7 @@ class ThreadedServer:
 
     def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
-            try:
-                message_type = client.recv(1)
-            except ConnectionResetError:
-                break
-
-            if not message_type:
-                break
-
-            message = message_type + client.recv(MESSAGE_SIZES[struct.unpack('b', message_type)[0]])
+            message = receive_message(client)
 
             for client_index in self._to_send_by_index:
                 if client_index != index:

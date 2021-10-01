@@ -18,7 +18,7 @@ def _append_to_file(file_name: str, text: str) -> None:
 def _set_up() -> None:
     logs_folder = os.path.dirname(SETTINGS.log_file_name)
 
-    if not os.path.exists(logs_folder):
+    if logs_folder and not os.path.exists(logs_folder):
         os.makedirs(os.path.dirname(logs_folder), exist_ok=True)
 
     open(SETTINGS.log_file_name, 'w+').close()
