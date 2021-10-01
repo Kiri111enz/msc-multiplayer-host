@@ -16,10 +16,8 @@ class ThreadedServer:
         self._nickname_by_index = {}
         self._to_send_by_index = {}
 
-        self._log_file_name = logger.get_log_file_name()
-
     def start(self) -> None:
-        logger.log(self._log_file_name, 'Server started.')
+        logger.log('Server started.')
         self._socket.listen(5)
 
         while True:
@@ -28,13 +26,13 @@ class ThreadedServer:
 
     def _handle_client(self, client: sk.socket) -> None:
         index = self._get_free_client_index()
-        logger.log(self._log_file_name, f'Client {index} connected.')
+        logger.log(f'Client {index} connected.')
 
         self._register_client(client, index)
         self._exchange_info_with_client(client, index)
         self._forget_client(client, index)
 
-        logger.log(self._log_file_name, f'Client {index} disconnected.')
+        logger.log(f'Client {index} disconnected.')
 
     def _register_client(self, client: sk.socket, index: int) -> None:
         nickname = client.recv(MESSAGE_SIZES[MessageType.INTRODUCTION.value])

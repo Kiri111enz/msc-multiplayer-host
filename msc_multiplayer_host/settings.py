@@ -1,8 +1,8 @@
 from collections import namedtuple
 from enum import Enum
 
-_Settings = namedtuple('Settings', ('logs_folder', 'port'))
-SETTINGS = _Settings('Logs/', 25565)
+_Settings = namedtuple('Settings', ('port',))
+SETTINGS = _Settings(25565)
 
 
 class MessageType(Enum):
