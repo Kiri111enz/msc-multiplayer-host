@@ -1,8 +1,9 @@
 from collections import namedtuple
 from enum import Enum
 
-_Settings = namedtuple('Settings', ('port',))
-SETTINGS = _Settings(25565)
+_Settings = namedtuple('Settings', ('port', 'log_file_name', 'debug_mode'))
+SETTINGS = _Settings(25565,
+                     'log_latest.txt', True)
 
 
 class MessageType(Enum):

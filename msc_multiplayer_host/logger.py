@@ -1,15 +1,12 @@
+from settings import SETTINGS
 import os
 from datetime import datetime
 
-LOGS_FOLDER = 'Logs/'
-LOG_FILE_NAME = f'{LOGS_FOLDER}log_latest.txt'
-DEBUG_MODE = True
-
 
 def log(text: str) -> None:
-    _append_to_file(LOG_FILE_NAME, f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\t{text}\n')
+    _append_to_file(SETTINGS.log_file_name, f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\t{text}\n')
 
-    if DEBUG_MODE:
+    if SETTINGS.debug_mode:
         print(text)
 
 
@@ -19,10 +16,12 @@ def _append_to_file(file_name: str, text: str) -> None:
 
 
 def _set_up() -> None:
-    if not os.path.exists(LOGS_FOLDER):
-        os.makedirs(os.path.dirname(LOGS_FOLDER), exist_ok=True)
+    logs_folder = os.path.dirname(SETTINGS.log_file_name)
 
-    open(LOG_FILE_NAME, 'w+').close()
+    if not os.path.exists(logs_folder):
+        os.makedirs(os.path.dirname(logs_folder), exist_ok=True)
+
+    open(SETTINGS.log_file_name, 'w+').close()
 
 
 _set_up()
