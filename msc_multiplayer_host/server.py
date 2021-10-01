@@ -1,4 +1,5 @@
 from msc_multiplayer_host.settings import SETTINGS, MessageType, MESSAGE_SIZES
+from msc_multiplayer_host.socket_utils import get_socket
 import msc_multiplayer_host.logger as logger
 import socket as sk
 import threading
@@ -7,10 +8,9 @@ from queue import Queue
 
 
 class ThreadedServer:
-    def __init__(self):
-        self._socket = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
-        self._socket.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
-        self._socket.bind(('', SETTINGS.port))
+    def __init__(self, port: int):
+        self._socket = get_socket()
+        self._socket.bind(('', port))
 
         self._pending_indexes = [0]
         self._nickname_by_index = {}
@@ -87,4 +87,4 @@ class ThreadedServer:
 
 
 if __name__ == '__main__':
-    ThreadedServer().start()
+    ThreadedServer(SETTINGS.port).start()
