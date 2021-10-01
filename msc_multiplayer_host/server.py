@@ -1,4 +1,4 @@
-from msc_multiplayer_host.settings import SETTINGS, MessageType
+from msc_multiplayer_host.settings import SETTINGS
 from msc_multiplayer_host.socket_utils import get_socket, receive_message
 import msc_multiplayer_host.logger as logger
 import socket as sk
@@ -28,9 +28,15 @@ class ThreadedServer:
         index = self._get_free_client_index()
         logger.log(f'Client {index} connected.')
 
-        self._register_client(client, index)
-        self._exchange_info_with_client(client, index)
-        self._forget_client(client, index)
+        try:
+            self._register_client(client, index)
+            self._exchange_info_with_client(client, index)
+        except ConnectionResetError:
+            pass
+        except Exception as exception:
+            logger.log(repr(exception))
+        finally:
+            self._forget_client(client, index)
 
         logger.log(f'Client {index} disconnected.')
 
@@ -40,7 +46,7 @@ class ThreadedServer:
         client.send(struct.pack('b', len(self._nickname_by_index)))
 
         for client_index in self._to_send_by_index:
-            self._to_send_by_index[client_index].put(struct.pack('2b', MessageType.CONNECTED.value, index) + nickname)
+            self._to_send_by_index[client_index].put(struct.pack('2b', SETTINGS.msg_connected_id, index) + nickname)
             client.send(struct.pack('b', client_index) + self._nickname_by_index[client_index])
 
         self._nickname_by_index[index] = nickname
@@ -61,12 +67,16 @@ class ThreadedServer:
     def _forget_client(self, client: sk.socket, index: int) -> None:
         client.close()
 
-        del self._nickname_by_index[index]
-        del self._to_send_by_index[index]
+        try:
+            del self._nickname_by_index[index]
+            del self._to_send_by_index[index]
+        except KeyError:
+            pass
+
         self._pending_indexes.append(index)
 
         for client_index in self._to_send_by_index:
-            self._to_send_by_index[client_index].put(struct.pack('2b', MessageType.DISCONNECTED.value, index))
+            self._to_send_by_index[client_index].put(struct.pack('2b', SETTINGS.msg_disconnected_id, index))
 
     def _get_free_client_index(self) -> int:
         new_client_index = min(self._pending_indexes)

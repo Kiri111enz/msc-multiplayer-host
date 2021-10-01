@@ -1,13 +1,6 @@
 from collections import namedtuple
-from enum import Enum
 
-_Settings = namedtuple('Settings', ('port', 'log_file_name', 'debug_mode'))
-SETTINGS = _Settings(25565,
+_Settings = namedtuple('Settings', ('port', 'msg_connected_id', 'msg_disconnected_id',
+                                    'log_file_name', 'debug_mode'))
+SETTINGS = _Settings(25565, 0, 1,
                      'Logs/log_latest.txt', True)
-
-
-class MessageType(Enum):
-    CONNECTED = 0
-    DISCONNECTED = 1
-    INTRODUCTION = 2
-    TRANSFORM_UPDATE = 3
