@@ -42,8 +42,7 @@ class ThreadedServer:
 
     def _register_client(self, client: sk.socket, index: int) -> None:
         nickname = receive_message(client)
-        client.send(struct.pack('b', index))
-        client.send(struct.pack('b', len(self._nickname_by_index)))
+        client.send(struct.pack('2b', index, len(self._nickname_by_index)))
 
         for client_index in self._to_send_by_index:
             self._to_send_by_index[client_index].put(struct.pack('2b', SETTINGS.msg_connected_id, index) + nickname)
@@ -61,8 +60,7 @@ class ThreadedServer:
                     self._to_send_by_index[client_index].put(message)
 
             while not self._to_send_by_index[index].empty():
-                message = self._to_send_by_index[index].get()
-                client.send(message)
+                client.send(self._to_send_by_index[index].get())
 
     def _forget_client(self, client: sk.socket, index: int) -> None:
         client.close()
