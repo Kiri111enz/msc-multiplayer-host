@@ -19,7 +19,7 @@ def _set_up() -> None:
     logs_folder = os.path.dirname(SETTINGS.log_file_name)
 
     if logs_folder and not os.path.exists(logs_folder):
-        os.makedirs(os.path.dirname(logs_folder), exist_ok=True)
+        os.makedirs(logs_folder, exist_ok=True)
 
     open(SETTINGS.log_file_name, 'w+').close()
 
