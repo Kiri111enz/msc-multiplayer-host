@@ -1,9 +1,9 @@
-from msc_multiplayer_host.settings import SETTINGS
-from msc_multiplayer_host.socket_utils import get_socket, receive_message
-import msc_multiplayer_host.logger as logger
+from settings import SETTINGS
+from socket_utils import get_socket, receive_message
+import logger
 import socket as sk
-import threading
 import struct
+from threading import Thread
 from queue import Queue
 
 
@@ -22,7 +22,7 @@ class ThreadedServer:
 
         while True:
             client, _ = self._socket.accept()
-            threading.Thread(target=self._handle_client, args=(client,)).start()
+            Thread(target=self._handle_client, args=(client,)).start()
 
     def _handle_client(self, client: sk.socket) -> None:
         index = self._get_free_client_index()

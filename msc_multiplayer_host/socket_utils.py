@@ -13,6 +13,6 @@ def receive_message(socket: sk.socket) -> bytes:
     message_size = socket.recv(1)
 
     if not message_size:
-        raise ConnectionResetError(f'Connection closed!', socket)
+        raise ConnectionResetError('Connection closed!', socket)
 
     return socket.recv(struct.unpack('b', message_size)[0])
