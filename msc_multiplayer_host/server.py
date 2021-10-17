@@ -1,4 +1,4 @@
-from settings import SETTINGS
+from settings import SETTINGS, MESSAGE_ID
 from socket_utils import get_socket, receive_message
 import logger
 import socket as sk
@@ -45,7 +45,7 @@ class ThreadedServer:
         client.send(struct.pack('2b', index, len(self._nickname_by_index)))
 
         for client_index in self._to_send_by_index:
-            self._to_send_by_index[client_index].put(struct.pack('2b', SETTINGS.msg_connected_id, index) + nickname)
+            self._to_send_by_index[client_index].put(struct.pack('2b', MESSAGE_ID.connected, index) + nickname)
             client.send(struct.pack('b', client_index) + self._nickname_by_index[client_index])
 
         self._nickname_by_index[index] = nickname
@@ -74,7 +74,7 @@ class ThreadedServer:
         self._pending_indexes.append(index)
 
         for client_index in self._to_send_by_index:
-            self._to_send_by_index[client_index].put(struct.pack('2b', SETTINGS.msg_disconnected_id, index))
+            self._to_send_by_index[client_index].put(struct.pack('2b', MESSAGE_ID.disconnected, index))
 
     def _get_free_client_index(self) -> int:
         new_client_index = min(self._pending_indexes)
