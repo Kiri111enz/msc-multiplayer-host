@@ -1,5 +1,5 @@
 from settings import SETTINGS, MESSAGE_ID
-from socket_utils import get_socket, receive_message
+from socket_utils import get_socket, try_recv
 import logger
 import socket as sk
 import struct
@@ -41,7 +41,8 @@ class ThreadedServer:
         logger.log(f'Client {index} disconnected.')
 
     def _register_client(self, client: sk.socket, index: int) -> None:
-        nickname = receive_message(client)
+        nickname_size = try_recv(client, 1)
+        nickname = nickname_size + try_recv(client, struct.unpack('b', nickname_size)[0])
         client.send(struct.pack('2b', index, len(self._nickname_by_index)))
 
         for client_index in self._to_send_by_index:
@@ -53,7 +54,8 @@ class ThreadedServer:
 
     def _exchange_info_with_client(self, client: sk.socket, index: int) -> None:
         while True:
-            message = receive_message(client)
+            message_size = try_recv(client, 1)
+            message = try_recv(client, struct.unpack('b', message_size)[0])
 
             for client_index in self._to_send_by_index:
                 if client_index != index:

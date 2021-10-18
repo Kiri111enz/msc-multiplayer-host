@@ -1,5 +1,4 @@
 import socket as sk
-import struct
 
 
 def get_socket() -> sk.socket:
@@ -9,10 +8,10 @@ def get_socket() -> sk.socket:
     return socket
 
 
-def receive_message(socket: sk.socket) -> bytes:
-    message_size = socket.recv(1)
+def try_recv(socket: sk.socket, size: int) -> bytes:
+    message = socket.recv(size)
 
-    if not message_size:
+    if not message:
         raise ConnectionResetError('Connection closed!', socket)
 
-    return socket.recv(struct.unpack('b', message_size)[0])
+    return message
