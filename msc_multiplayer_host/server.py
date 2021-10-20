@@ -94,14 +94,14 @@ class ThreadedServer:
 
         return new_client_index
 
-    def _react_on_save_alert(self, index: int) -> None:
-        if index == 0:
+    def _react_on_save_alert(self, index_sent: int) -> None:
+        if index_sent == 0:
             self._send_save_to_new_client()
             logger.log('Sent save to new client.')
         else:
             for client_index in self._socket_by_index:
-                if client_index != index:
-                    self._socket_by_index[index].send(SAVE_ALERT)
+                if client_index != index_sent:
+                    self._socket_by_index[client_index].send(SAVE_ALERT)
 
             logger.log('New client loaded, told everyone to unpause.')
 
