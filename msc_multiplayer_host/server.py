@@ -1,10 +1,10 @@
-from settings import SETTINGS, MESSAGE_ID, SAVE_ALERT
-from socket_utils import get_socket, try_recv
-import logger
 import socket as sk
 import struct
 from threading import Thread
 from queue import Queue
+from settings import SETTINGS, MESSAGE_ID, SAVE_ALERT
+from socket_utils import get_socket, try_recv
+import logger
 
 
 class ThreadedServer:
@@ -112,7 +112,7 @@ class ThreadedServer:
         file_count = try_recv(host, 1)
         new_client.send(file_count)
 
-        for i in range(struct.unpack('b', file_count)[0]):
+        for _ in range(struct.unpack('b', file_count)[0]):
             file_size = struct.unpack('i', try_recv(host, 4))[0]
 
             while file_size > 0:

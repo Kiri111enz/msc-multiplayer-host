@@ -1,6 +1,6 @@
-from settings import SETTINGS
 import os
 from datetime import datetime
+from settings import SETTINGS
 
 
 def log(text: str) -> None:
